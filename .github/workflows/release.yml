@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*
+
+env:
+  REGISTRY: ghcr.io
+  IMG_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Log in to the container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get tag
+        uses: actions-ecosystem/action-get-latest-tag@v1
+        id: vars
+        with:
+          with_initial_version: true
+
+      - name: Build image
+        run: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          make docker-build IMG=${IMG}
+        shell: bash
+        env:
+          IMG: ${{ env.REGISTRY }}/${{ env.IMG_NAME }}:${{ steps.vars.outputs.tag }}
+      
+      - name: Push image
+        run: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          make docker-push IMG=${IMG}
+        shell: bash
+        env:
+          IMG: ${{ env.REGISTRY }}/${{ env.IMG_NAME }}:${{ steps.vars.outputs.tag }}
