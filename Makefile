@@ -1,4 +1,4 @@
-IMG ?= ghcr.io/amarchese96/mentat:latest
+IMG ?= ghcr.io/unict-cclab/mentat:latest
 
 run:
 	go run main.go
